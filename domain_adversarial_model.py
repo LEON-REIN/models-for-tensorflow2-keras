@@ -100,7 +100,7 @@ if __name__ == '__main__':
     """How to use DomainAdversarialModel"""
     # Firstly, you should have a feature extraction model of tf.keras.Model.
     from .SE_ResNeXt_1DCNN import SEResNeXt 
-    Model = SEResNeXt(...).SEResNeXt50()  # To be specified by yourself
+    Model = SEResNeXt(...).SEResNeXt50()  # To be specified by yourself, e.g., a tf.keras.applications.ResNet50 with `include_top=false`.
 
     # If the model doesn't output a feature, several top layers have to be removed like:
     modified_model = tf.keras.Model(inputs=Model.input, outputs=Model.get_layer(index=-2).output)
