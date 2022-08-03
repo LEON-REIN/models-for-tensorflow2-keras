@@ -56,13 +56,19 @@ class DomainAdversarialModel:
       num_labels: Int, the number of labels.
       num_domains: Int, the number of domains.
       lambda_: Float32, the constant by which the gradient is multiplied. It should be a negative number.
+      need_linear_projection: if your feature_extractor outputs is not from a linear projection, enable this to add
+          a linear projection layer (dense with linear activation) if you want to.
 
     Attributes:
       output layer name of label classifier: "label_predict"
       output layer name of domain classifier: "domain_predict"
+      num of neurons of linear projection layer: 256 (can be specified by yourself)
+      label_classifier and domain_classifier: just simple dense layers (can be specified by yourself)
+      
     """
 
     def __init__(self, feature_extractor: tf.keras.Model, num_labels, num_domains, lambda_: float = -1,
+                 need_linear_projection: bool = True,
                  name_label_classifier="label_predict", name_domain_classifier="domain_predict"):
         self.feature_extractor = feature_extractor  # has to be a tf.keras.Model
         self.num_labels = num_labels
@@ -77,7 +83,10 @@ class DomainAdversarialModel:
             # make sure feature has a shape of (None, feature_dim). Flatten is important for pytorch, maybe
             # not necessary for Tensorflow2.keras.
             feature = tf.keras.layers.Flatten()(feature)
-
+            
+        # linear projection
+        if self.need_linear_projection:
+            feature = tf.keras.layers.Dense(256, activation='linear')(feature)
         # output1 --> label_classifier
         label_predict = self.label_classifier(feature)
         # output2 --> domain_classifier
@@ -88,7 +97,7 @@ class DomainAdversarialModel:
                               outputs=[label_predict, domain_predict])
 
     def label_classifier(self, x):
-        # x = tf.keras.layers.Dense(128, activation='relu')(x)
+        x = tf.keras.layers.Dense(128, activation='relu')(x)
         return tf.keras.layers.Dense(self.num_labels, activation='softmax', name=self.name_label_classifier)(x)
 
     def domain_classifier(self, x):
